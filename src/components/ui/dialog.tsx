@@ -1,10 +1,13 @@
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { type DialogProps } from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+
+type BaseDialogProps = Pick<DialogProps, "open" | "onOpenChange">;
 
 const Dialog = DialogPrimitive.Root;
 
@@ -101,4 +104,5 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  BaseDialogProps,
 };

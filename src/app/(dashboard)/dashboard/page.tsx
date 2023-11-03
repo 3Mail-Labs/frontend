@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { CreateCampaignButton } from "@/components/campaigns/create-campaign-button";
 import { authOptions } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/session";
 
@@ -14,5 +15,12 @@ export default async function DashboardPage() {
     redirect(authOptions?.pages?.signIn || "/login");
   }
 
-  return <div>Dashboard</div>;
+  return (
+    <div>
+      <div className="flex justify-between">
+        <h1 className="text-3xl font-bold">Campaigns</h1>
+        <CreateCampaignButton />
+      </div>
+    </div>
+  );
 }
