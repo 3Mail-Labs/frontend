@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getSession } from "next-auth/react";
 import * as z from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { createContactSchema } from "@/lib/validations/contact";
 
 export async function POST(req: Request) {

@@ -2,6 +2,7 @@ import "./globals.css";
 import { Inter, Bricolage_Grotesque } from "next/font/google";
 
 import { Layout } from "@/components/layout/layout";
+import { Toaster } from "@/components/ui/toaster";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       >
         <Providers>
           <Layout>{children}</Layout>
+          <Toaster />
         </Providers>
       </body>
     </html>

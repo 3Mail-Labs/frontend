@@ -25,12 +25,12 @@ export const dashboardConfig: DashboardConfig = {
     },
     {
       title: "Contacts",
-      href: "/dashboard/billing",
+      href: "/dashboard/contacts",
       icon: "check",
     },
     {
       title: "Lists",
-      href: "/dashboard/settings",
+      href: "/dashboard/lists",
       icon: "ellipsis",
     },
   ],
