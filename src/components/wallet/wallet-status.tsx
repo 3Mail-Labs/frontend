@@ -5,7 +5,9 @@ import { useAccount } from "wagmi";
 import { SignButton } from "@/components/sign-button";
 import { Button } from "@/components/ui/button";
 
-import { WalletDropdown } from "./wallet-dropdown";
+import { UserAccountNav } from "../user-account-nav";
+
+// import { WalletDropdown } from "./wallet-dropdown";
 
 export const WalletStatus = () => {
   const { open } = useWeb3Modal();
@@ -15,7 +17,8 @@ export const WalletStatus = () => {
 
   if (isConnected && address) {
     if (session) {
-      return <WalletDropdown address={address} />;
+      // return <WalletDropdown address={address} />;
+      return <UserAccountNav user={session.user} />;
     } else {
       return <SignButton />;
     }
