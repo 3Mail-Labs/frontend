@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// model User {
+//   id            String    @id @default(cuid())
+//   address       String    @unique
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @default(now()) @updatedAt
+
+//   @@map(name: "users")
+// }
+
+model Campaign {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  subject       String?
+  content       String
+  type          String    @default("email") // email, notification
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  list List @relation(fields: [listId], references: [id])
+  listId String
+
+  @@map(name: "campaigns")
+}
+
+model List {
+  id           String    @id @default(cuid())
+  name         String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  contacts     ListContact[]
+  campaigns    Campaign[]
+
+  @@map(name: "contact_lists")
+}
+
+model Contact {
+  address String @id
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  contactLists  ListContact[]
+
+  @@map(name: "contacts")
+}
+
+model ListContact {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  list  List @relation(fields: [listId], references: [id])
+  listId String
+
+  contact  Contact @relation(fields: [contactAddress], references: [address])
+  contactAddress String
+
+  @@unique([listId, contactAddress])
+  @@index([listId])
+  @@map(name: "contact_list_contacts")
+}
