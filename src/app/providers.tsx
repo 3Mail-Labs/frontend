@@ -1,6 +1,7 @@
 "use client";
 
 import { createWeb3Modal, defaultWagmiConfig } from "@web3modal/wagmi/react";
+import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { ReactNode } from "react";
 import { WagmiConfig } from "wagmi";
@@ -24,9 +25,11 @@ createWeb3Modal({ wagmiConfig, projectId, chains: CHAINS });
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        {children}
-      </ThemeProvider>
+      <SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </SessionProvider>
     </WagmiConfig>
   );
 }

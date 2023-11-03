@@ -1,12 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { getCsrfToken, signIn } from "next-auth/react";
 import { SiweMessage } from "siwe";
 import { useAccount, useNetwork, useSignMessage } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 
-export function SignIn() {
+export function SignButton() {
+  const router = useRouter();
   const { chain } = useNetwork();
   const { address } = useAccount();
   const { signMessageAsync } = useSignMessage();
@@ -28,20 +30,18 @@ export function SignIn() {
         message: message.prepareMessage(),
       });
 
-      signIn("credentials", {
+      await signIn("credentials", {
         message: JSON.stringify(message),
         redirect: false,
         signature,
         callbackUrl,
       });
+
+      router.refresh();
     } catch (error) {
       window.alert(error);
     }
   };
 
-  return (
-    <div>
-      <Button onClick={onSignMessage}>Sign</Button>
-    </div>
-  );
+  return <Button onClick={onSignMessage}>Sign</Button>;
 }
