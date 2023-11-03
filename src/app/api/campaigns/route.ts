@@ -2,10 +2,20 @@ import { NextResponse } from "next/server";
 import * as z from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/session";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
 export async function POST(req: Request) {
   try {
+    // Check if user is authenticated
+    const session = await getSession();
+
+    if (!session?.user) {
+      return new Response("Unauthorized", { status: 403 });
+    }
+
+    const { user } = session;
+
     const json = await req.json();
     const body = createCampaignSchema.parse(json);
 
@@ -17,6 +27,7 @@ export async function POST(req: Request) {
         subject: body.subject,
         description: body.description,
         listId: body.listId,
+        userId: user.id,
       },
     });
 
