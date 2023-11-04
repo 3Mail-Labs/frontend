@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-import { ContactCard } from "@/components/contacts/contact-card";
 import { ContactsList } from "@/components/contacts/contacts-list";
 import { CreateContactButton } from "@/components/contacts/create-contact-button";
+import { Icons } from "@/components/icons";
 import { authOptions } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/session";
 
@@ -26,9 +26,11 @@ export default async function ContactsPage() {
       </div>
       <div className="mt-6">
         <Suspense
-          fallback={Array.from({ length: 6 }).map((_, i) => (
-            <ContactCard.Skeleton key={i} />
-          ))}
+          fallback={
+            <div className="flex justify-center py-8">
+              <Icons.spinner className="h-5 w-5 animate-spin" />
+            </div>
+          }
         >
           <ContactsList />
         </Suspense>

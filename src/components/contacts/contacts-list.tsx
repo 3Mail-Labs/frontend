@@ -12,10 +12,6 @@ const getContacts = cache(async () => {
     return null;
   }
 
-  // sleep
-  // const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-  // await sleep(1000);
-
   const projects = await prisma.contact.findMany({
     where: {
       userId: session.user.id,
