@@ -12,13 +12,13 @@ const getContacts = cache(async () => {
     return null;
   }
 
-  const projects = await prisma.contact.findMany({
+  const contacts = await prisma.contact.findMany({
     where: {
       userId: session.user.id,
     },
   });
 
-  return projects;
+  return contacts;
 });
 
 export async function ContactsList() {

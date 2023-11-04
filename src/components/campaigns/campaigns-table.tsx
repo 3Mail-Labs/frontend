@@ -1,6 +1,6 @@
 "use client";
 
-import { List } from "@prisma/client";
+import { Campaign, List } from "@prisma/client";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -24,7 +24,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export const columns: ColumnDef<List>[] = [
+export interface CampaignWithList extends Campaign {
+  list: List;
+}
+
+export const columns: ColumnDef<CampaignWithList>[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -33,42 +37,43 @@ export const columns: ColumnDef<List>[] = [
   {
     accessorKey: "type",
     header: "Type",
-    cell: ({ row }) => <span>{row.getValue("type") === "nft" ? "NFT" : "Token"}</span>,
+    cell: ({ row }) => {
+      const value = row.getValue("type") as string;
+      return <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>;
+    },
   },
   {
-    accessorFn: (row) => {
-      // Check if params is an object and not an array
-      if (typeof row.params === "object" && !Array.isArray(row.params)) {
-        return row.params?.tokenAddress;
-      }
-    },
-    header: "Token Address",
-    cell: ({ getValue }) => <span>{getValue() as string}</span>,
+    accessorKey: "createdAt",
+    header: "Created at",
+    cell: ({ getValue }) => (
+      <div>
+        {(getValue() as Date).toLocaleDateString("en-us", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })}
+      </div>
+    ),
   },
   {
-    accessorFn: (row) => {
-      // Check if params is an object and not an array
-      if (typeof row.params === "object" && !Array.isArray(row.params)) {
-        return row.params?.amount;
-      }
-    },
-    header: "Amount",
+    accessorKey: "list.name",
+    header: "List",
     cell: ({ getValue }) => <span>{getValue() as string}</span>,
   },
 ];
 
-interface ListsTableProps {
-  lists: List[];
+interface CampaignsTableProps {
+  campaigns: CampaignWithList[];
 }
 
-export function ListsTable({ lists }: ListsTableProps) {
+export function CampaignsTable({ campaigns }: CampaignsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data: lists,
+    data: campaigns,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
