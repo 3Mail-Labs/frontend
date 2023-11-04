@@ -1,6 +1,7 @@
 "use client";
 
 import { Campaign, List } from "@prisma/client";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -16,6 +17,12 @@ import {
 import * as React from "react";
 
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -23,6 +30,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { Button } from "../ui/button";
+
+import { CampaignInfoModal } from "./campaign-info-modal";
 
 export interface CampaignWithList extends Campaign {
   list: List | null;
@@ -60,7 +71,33 @@ export const columns: ColumnDef<CampaignWithList>[] = [
     header: "List",
     cell: ({ getValue }) => <span>{(getValue() as string) ?? "All Contacts"}</span>,
   },
+  {
+    id: "actions",
+    enableHiding: false,
+    cell: ({ row }) => <CampaignActionCell row={row} />,
+  },
 ];
+
+function CampaignActionCell({ row }: { row: any }) {
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div>
+      <CampaignInfoModal open={open} onOpenChange={setOpen} campaign={row.original} />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <DotsHorizontalIcon className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setOpen(true)}>View payment details</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
 
 interface CampaignsTableProps {
   campaigns: CampaignWithList[];
