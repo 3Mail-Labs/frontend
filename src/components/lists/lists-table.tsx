@@ -1,6 +1,6 @@
 "use client";
 
-import { Contact } from "@prisma/client";
+import { List } from "@prisma/client";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -24,41 +24,49 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { Address } from "../address";
-
-export const columns: ColumnDef<Contact>[] = [
+export const columns: ColumnDef<List>[] = [
   {
-    accessorKey: "address",
-    header: "Address",
-    cell: ({ row }) => <Address address={row.getValue("address")} />,
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => <span>{row.getValue("name")}</span>,
   },
   {
-    accessorKey: "createdAt",
-    header: "Created at",
-    cell: ({ getValue }) => (
-      <div>
-        {(getValue() as Date).toLocaleDateString("en-us", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })}
-      </div>
-    ),
+    accessorKey: "type",
+    header: "Type",
+    cell: ({ row }) => <span>{row.getValue("type")}</span>,
+  },
+  {
+    accessorFn: (row) => {
+      // @ts-ignore
+      return row.params.tokenAddress;
+    },
+    header: "Token Address",
+    // @ts-ignore
+    cell: ({ getValue }) => <span>{getValue()}</span>,
+  },
+  {
+    accessorFn: (row) => {
+      // @ts-ignore
+      return row.params.amount;
+    },
+    header: "Amount",
+    // @ts-ignore
+    cell: ({ getValue }) => <span>{getValue()}</span>,
   },
 ];
 
-interface ContactsTableProps {
-  contacts: Contact[];
+interface ListsTableProps {
+  lists: List[];
 }
 
-export function ContactsTable({ contacts }: ContactsTableProps) {
+export function ListsTable({ lists }: ListsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   const table = useReactTable({
-    data: contacts,
+    data: lists,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

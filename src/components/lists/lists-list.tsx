@@ -3,6 +3,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 
+import { ListsTable } from "./lists-table";
 import { NoListsPlaceholder } from "./no-list-placeholder";
 
 const getLists = cache(async () => {
@@ -27,11 +28,5 @@ export async function ListsList() {
     return <NoListsPlaceholder />;
   }
 
-  return (
-    <div>
-      {lists.map((list) => (
-        <div key={list.id}>{list.name}</div>
-      ))}
-    </div>
-  );
+  return <ListsTable lists={lists} />;
 }

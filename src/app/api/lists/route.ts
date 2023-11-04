@@ -27,6 +27,7 @@ export async function POST(req: Request) {
         type: body.type,
         params: {
           tokenAddress: body.params.tokenAddress,
+          amount: body.params.amount,
         },
         contacts: body.contacts,
       },
