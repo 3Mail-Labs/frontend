@@ -20,16 +20,34 @@ export async function POST(req: Request) {
       return NextResponse.json("User not found", { status: 404 });
     }
 
-    // Create contact
-    const contact = await prisma.contact.create({
-      data: {
+    const existingContact = await prisma.contact.findFirst({
+      where: {
         address: body.address,
         userId: user.id,
-        numberOfAccess: body.numberOfAccess,
       },
     });
 
-    return NextResponse.json(contact);
+    if (existingContact) {
+      const updatedContact = await prisma.contact.update({
+        where: {
+          id: existingContact.id,
+        },
+        data: {
+          numberOfAccess: (existingContact.numberOfAccess || 0) + body.numberOfAccess,
+        },
+      });
+      return NextResponse.json(updatedContact);
+    } else {
+      // Create contact
+      const contact = await prisma.contact.create({
+        data: {
+          address: body.address,
+          userId: user.id,
+          numberOfAccess: body.numberOfAccess,
+        },
+      });
+      return NextResponse.json(contact);
+    }
   } catch (error) {
     console.log("Error: ", error);
 

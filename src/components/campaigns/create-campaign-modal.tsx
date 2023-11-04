@@ -92,35 +92,37 @@ export function CreateCampaignModal({
       contacts: filteredContacts,
     });
 
-    console.log("Sent emails: ", sentEmails);
+    if (sentEmails.length !== 0) {
+      console.log("Sent emails: ", sentEmails);
 
-    const response = await fetch("/api/campaigns", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...data,
-        listId: selectedList === "all-contacts" ? undefined : selectedList,
-        type: "email",
-      }),
-    });
+      const response = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...data,
+          listId: selectedList === "all-contacts" ? undefined : selectedList,
+          type: "email",
+        }),
+      });
 
-    setIsLoading(false);
+      if (!response?.ok) {
+        return toast({
+          title: "Something went wrong.",
+          description: "Your campaign was not created. Please try again.",
+          variant: "destructive",
+        });
+      }
 
-    if (!response?.ok) {
-      return toast({
-        title: "Something went wrong.",
-        description: "Your campaign was not created. Please try again.",
-        variant: "destructive",
+      toast({
+        title: "Campaign created!.",
+        description: "Your campaign was created successfully",
+        variant: "default",
       });
     }
 
-    toast({
-      title: "Campaign created!.",
-      description: "Your campaign was created successfully",
-      variant: "default",
-    });
+    setIsLoading(false);
 
     // This forces a cache invalidation.
     router.refresh();

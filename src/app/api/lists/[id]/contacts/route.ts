@@ -1,23 +1,37 @@
-"use server"
-
-import { ethers } from "ethers";
 import { NextResponse } from "next/server";
-import {  z } from "zod";
-
-import {  createPublicClient, getContract, http} from 'viem'
+import { createPublicClient, defineChain, getContract, http } from "viem";
+import { polygonZkEvmTestnet } from "viem/chains";
+import { z } from "zod";
 
 import { erc20Abi } from "@/abis/erc20";
 import { erc721Abi } from "@/abis/erc721";
-import { env } from "@/env.mjs";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
-import { polygonZkEvmTestnet } from "viem/chains";
 
 const POLYGON_ZKSYNC_TESTNET_CHAIN_ID = 1442;
-// const CORE_TESTNET_CHAIN_ID = 1115;
 
-// const RPC_POLYGON_ZKEVM_TESTNET = "https://rpc.public.zkevm-test.net";
-// const RPC_COREDAO_TESTNET = env.RPC_COREDAO_TESTNET || "https://rpc.test.btcs.network";
+export const coreTestnet = defineChain({
+  id: 1115,
+  name: "Core Blockchain Testnet",
+  network: "core-blockchain-testnet",
+  nativeCurrency: { name: "tCORE", symbol: "tCORE", decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.test.btcs.network"],
+    },
+    public: {
+      http: ["https://rpc.test.btcs.network"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "CoreScan",
+      url: "https://scan.test.btcs.network",
+    },
+  },
+  testnet: true,
+  contracts: {},
+});
 
 const routeContextSchema = z.object({
   params: z.object({
@@ -62,30 +76,28 @@ export async function GET(_: Request, context: z.infer<typeof routeContextSchema
     }
 
     const { chainId, tokenAddress, amount } = list.params as Record<string, string>;
-    const chain = Number(chainId) === POLYGON_ZKSYNC_TESTNET_CHAIN_ID ? polygonZkEvmTestnet : polygonZkEvmTestnet;
+    const chain =
+      Number(chainId) === POLYGON_ZKSYNC_TESTNET_CHAIN_ID ? polygonZkEvmTestnet : coreTestnet;
 
-    const client = createPublicClient({ 
+    const client = createPublicClient({
       chain,
-      transport: http()
-    })
+      transport: http(),
+    });
 
     const abi = list.type === "nft" ? erc721Abi : erc20Abi;
-    
 
     const contract = getContract({
       address: tokenAddress as `0x${string}`,
       abi,
       publicClient: client,
-    })
+    });
 
     const filteredContacts = [];
 
     for (const contact of contacts) {
-      const balance = await contract.read.balanceOf([contact.address])
-      console.log("Balance: ", balance);
+      const balance = await contract.read.balanceOf([contact.address]);
 
       if (Number(balance) > Number(amount)) {
-        console.log("Contact: ", contact);
         filteredContacts.push(contact);
       }
     }
