@@ -17,6 +17,8 @@ export async function POST(req: Request) {
     const { user } = session;
 
     const json = await req.json();
+    console.log("json: ", json);
+
     const body = createListSchema.parse(json);
 
     // Create list
@@ -28,6 +30,7 @@ export async function POST(req: Request) {
         params: {
           tokenAddress: body.params.tokenAddress,
           amount: body.params.amount,
+          chainId: body.params.chainId,
         },
         contacts: body.contacts,
       },
@@ -35,7 +38,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(list);
   } catch (error) {
-    console.error(error);
+    console.error("Error: ", error);
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(error.issues, { status: 422 });

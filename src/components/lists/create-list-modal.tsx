@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CORE_TESTNET_CHAIN_ID, POLYGON_ZKSYNC_TESTNET_CHAIN_ID } from "@/config/chains";
 import { cn } from "@/lib/utils";
-import { createListSchema } from "@/lib/validations/list";
 
 import { Icons } from "../icons";
 import { buttonVariants } from "../ui/button";
@@ -22,9 +22,12 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "../ui/use-toast";
 
-const createListFieldsSchema = createListSchema.pick({
-  name: true,
-  params: true,
+const createListFieldsSchema = z.object({
+  name: z.string().min(1, { message: "Required" }),
+  params: z.object({
+    tokenAddress: z.string().min(1),
+    amount: z.string().min(1).regex(/^\d+$/),
+  }),
 });
 
 type CreateListData = z.infer<typeof createListFieldsSchema>;
@@ -34,6 +37,7 @@ export function CreateListModal({ open, onOpenChange }: BaseDialogProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [listType, setListType] = useState("nft");
+  const [chainId, setChainId] = useState(CORE_TESTNET_CHAIN_ID.toString());
 
   const {
     register,
@@ -54,7 +58,11 @@ export function CreateListModal({ open, onOpenChange }: BaseDialogProps) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        ...data,
+        name: data.name,
+        params: {
+          ...data.params,
+          chainId,
+        },
         type: listType,
         contacts: ["0x0F45421E8DC47eF9edd8568a9D569b6fc7Aa7AC6"],
       }),
@@ -82,6 +90,8 @@ export function CreateListModal({ open, onOpenChange }: BaseDialogProps) {
     onOpenChange?.(false);
   });
 
+  console.log("Errors: ", errors);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent>
@@ -108,12 +118,32 @@ export function CreateListModal({ open, onOpenChange }: BaseDialogProps) {
             </Label>
             <Select value={listType} onValueChange={setListType}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a fruit" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="nft">NFT</SelectItem>
                   <SelectItem value="token">Token</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="name" className="mb-2 block">
+              Chain
+            </Label>
+            <Select value={chainId} onValueChange={setChainId}>
+              <SelectTrigger>
+                <SelectValue>
+                  {chainId === CORE_TESTNET_CHAIN_ID.toString() ? "Core" : "Polygon zkEVM"}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value={CORE_TESTNET_CHAIN_ID.toString()}>Core</SelectItem>
+                  <SelectItem value={POLYGON_ZKSYNC_TESTNET_CHAIN_ID.toString()}>
+                    Polygon zkEVM
+                  </SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

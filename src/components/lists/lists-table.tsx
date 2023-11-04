@@ -23,6 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CORE_TESTNET_CHAIN_ID } from "@/config/chains";
 
 export const columns: ColumnDef<List>[] = [
   {
@@ -54,6 +55,18 @@ export const columns: ColumnDef<List>[] = [
     },
     header: "Amount",
     cell: ({ getValue }) => <span>{getValue() as string}</span>,
+  },
+  {
+    accessorFn: (row) => {
+      // Check if params is an object and not an array
+      if (typeof row.params === "object" && !Array.isArray(row.params)) {
+        return row.params?.chainId;
+      }
+    },
+    header: "Chain",
+    cell: ({ getValue }) => (
+      <span>{getValue() === CORE_TESTNET_CHAIN_ID.toString() ? "Core" : "Polygon zkEVM"}</span>
+    ),
   },
 ];
 

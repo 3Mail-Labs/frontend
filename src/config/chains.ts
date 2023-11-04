@@ -1,11 +1,15 @@
 import { defineChain } from "viem";
-import { hardhat, polygon, polygonMumbai } from "wagmi/chains";
+import { hardhat, polygon, polygonMumbai, polygonZkEvmTestnet } from "wagmi/chains";
 
 import { env } from "@/env.mjs";
 import HardhatIcon from "@/icons/hardhat.svg";
 import PolygonIcon from "@/icons/polygon.svg";
 
 export type ChainMap = { [chainId: number]: string };
+
+export const POLYGON_ZKSYNC_TESTNET_CHAIN_ID = polygonZkEvmTestnet.id;
+
+export const CORE_TESTNET_CHAIN_ID = 1115;
 
 export const iexec = defineChain({
   id: 134,
