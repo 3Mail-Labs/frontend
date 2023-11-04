@@ -6,6 +6,8 @@ export const env = createEnv({
     NEXTAUTH_URL: z.string().url().optional(),
     NEXTAUTH_SECRET: z.string().min(1),
     DATABASE_URL: z.string().min(1),
+    RPC_POLYGON_ZKEVM_TESTNET: z.string().optional(),
+    RPC_COREDAO_TESTNET: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_CHAIN: z.union([
