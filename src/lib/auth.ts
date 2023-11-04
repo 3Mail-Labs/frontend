@@ -41,6 +41,8 @@ export const authOptions: NextAuthOptions = {
             nonce: await getCsrfToken({ req }),
           });
 
+          // console.log("SIWE address: ", siwe.address);
+
           if (result.success) {
             // Create user if not exists
             const user = await prisma.user.upsert({
@@ -53,11 +55,15 @@ export const authOptions: NextAuthOptions = {
               update: {},
             });
 
+            // console.log("User 1: ", user);
+
             return {
               id: user.id,
               address: siwe.address,
             };
           }
+
+          // console.log("Here");
 
           return null;
         } catch (e) {
@@ -68,6 +74,8 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ token, session }) {
+      // console.log("Token 2: ", token);
+      // console.log("Session: ", session);
       session.user = {
         ...token,
         address: token.address,
@@ -76,11 +84,15 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async jwt({ token, user }) {
+      // console.log("Token 1 : ", token);
+      // console.log("User 2: ", user);
       const dbUser = await prisma.user.findFirst({
         where: {
-          id: user?.id,
+          id: user?.id || token.id,
         },
       });
+
+      // console.log("DB User 1: ", dbUser);
 
       if (!dbUser) {
         if (user) {
