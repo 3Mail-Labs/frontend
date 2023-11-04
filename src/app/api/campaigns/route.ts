@@ -33,6 +33,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(campaign);
   } catch (error) {
+    console.error("Error: ", error);
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(error.issues, { status: 422 });
     }

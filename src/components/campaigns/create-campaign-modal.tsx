@@ -79,7 +79,7 @@ export function CreateCampaignModal({
       },
       body: JSON.stringify({
         ...data,
-        listId: selectedList,
+        listId: selectedList === "all-contacts" ? undefined : selectedList,
         type: "email",
       }),
     });
