@@ -95,7 +95,8 @@ model List {
   type         String
   params       Json
 
-  contacts     Contact[]
+  contacts     String[]
+  // contacts     Contact[]
   campaigns    Campaign[]
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -113,7 +114,7 @@ model Contact {
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  lists  List[]
+  // lists  List[]
 
   @@unique([userId, address])
   @@map(name: "contacts")

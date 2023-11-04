@@ -28,12 +28,7 @@ export async function POST(req: Request) {
         params: {
           tokenAddress: body.params.tokenAddress,
         },
-        contacts: {
-          create: body.contacts.map((contact) => ({
-            address: contact,
-            userId: user.id,
-          })),
-        },
+        contacts: body.contacts,
       },
     });
 

@@ -27,5 +27,11 @@ export async function ListsList() {
     return <NoListsPlaceholder />;
   }
 
-  return <div>Lists</div>;
+  return (
+    <div>
+      {lists.map((list) => (
+        <div key={list.id}>{list.name}</div>
+      ))}
+    </div>
+  );
 }
