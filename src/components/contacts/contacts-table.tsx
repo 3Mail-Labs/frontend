@@ -45,6 +45,11 @@ export const columns: ColumnDef<Contact>[] = [
       </div>
     ),
   },
+  {
+    accessorKey: "numberOfAccess",
+    header: "Number of emails",
+    cell: ({ row }) => <span>{row.getValue("numberOfAccess")}</span>,
+  },
 ];
 
 interface ContactsTableProps {

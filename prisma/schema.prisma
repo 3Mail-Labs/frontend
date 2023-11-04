@@ -110,6 +110,7 @@ model Contact {
   address       String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
+  numberOfAccess Int?    @default(0)
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
