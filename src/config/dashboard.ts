@@ -33,5 +33,10 @@ export const dashboardConfig: DashboardConfig = {
       href: "/dashboard/lists",
       icon: "ellipsis",
     },
+    {
+      title: "Embed",
+      href: "/dashboard/embed",
+      icon: "ellipsis",
+    },
   ],
 };
