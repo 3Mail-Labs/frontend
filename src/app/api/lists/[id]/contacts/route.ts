@@ -10,7 +10,7 @@ import { getSession } from "@/lib/session";
 
 const POLYGON_ZKSYNC_TESTNET_CHAIN_ID = 1442;
 
-export const coreTestnet = defineChain({
+const coreTestnet = defineChain({
   id: 1115,
   name: "Core Blockchain Testnet",
   network: "core-blockchain-testnet",

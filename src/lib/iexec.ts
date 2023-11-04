@@ -9,33 +9,43 @@ export async function getContacts({ provider }: GetContactsParams) {
   return await web3mail.fetchMyContacts();
 }
 
-interface SendEmailParams {
-  provider: any;
+export interface Email {
   subject: string;
   content: string;
+  address: string;
+}
+
+interface SendEmailParams {
+  provider: any;
+  // subject: string;
+  // contents: string[];
   senderName: string;
-  contacts: string[];
+  // contacts: string[];
+  emails: Email[];
 }
 
 export async function sendEmails({
   provider,
-  content,
-  subject,
-  senderName,
-  contacts,
+  emails,
+  // contents,
+  // subject,
+  senderName, // contacts,
 }: SendEmailParams) {
-  const lowercaseContacts = contacts.map((contact) => contact.toLowerCase());
+  const addresses = emails.map((email) => email.address.toLowerCase());
+
+  console.log("Addresses", addresses);
 
   const web3mail = new IExecWeb3mail(provider);
-  const currentContacts: Contact[] = await web3mail.fetchMyContacts();
-  // console.log("Contacts", currentContacts);
+  const availableContacts: Contact[] = await web3mail.fetchMyContacts();
+
+  console.log("Available contacts", availableContacts);
 
   // Filter contacts
-  const filteredContacts = currentContacts.filter((contact) =>
-    lowercaseContacts.includes(contact.owner.toLowerCase()),
+  const filteredContacts = availableContacts.filter((c) =>
+    addresses.includes(c.owner.toLowerCase()),
   );
 
-  // console.log("Filtered contacts", filteredContacts);
+  console.log("Filtered contacts", filteredContacts);
 
   // Remove duplicates
   const uniqueContacts = filteredContacts.filter(
@@ -43,13 +53,23 @@ export async function sendEmails({
       index === self.findIndex((c) => c.owner.toLowerCase() === contact.owner.toLowerCase()),
   );
 
+  const emailsToSend = uniqueContacts.map((contact) => {
+    const email = emails.find((e) => e.address.toLowerCase() === contact.owner.toLowerCase());
+    return {
+      ...email,
+      protectedData: contact.address,
+    };
+  });
+
   // console.log("Unique contacts", uniqueContacts);
 
-  const promises = uniqueContacts.map((contact) =>
+  console.log("Emails to send", emailsToSend);
+
+  const promises = emailsToSend.map((email) =>
     web3mail.sendEmail({
-      protectedData: contact.address,
-      emailSubject: subject,
-      emailContent: content,
+      protectedData: email.protectedData,
+      emailSubject: email.subject || "No subject",
+      emailContent: email.content || "No content",
       contentType: "text/html",
       senderName,
     }),

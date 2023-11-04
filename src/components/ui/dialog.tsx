@@ -104,5 +104,5 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-  BaseDialogProps,
+  type BaseDialogProps,
 };

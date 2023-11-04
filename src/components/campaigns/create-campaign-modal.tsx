@@ -21,23 +21,28 @@ import {
 } from "@/components/ui/select";
 import { iexec } from "@/config/chains";
 import { useChainId } from "@/hooks/use-chain-id";
-import { sendEmails } from "@/lib/iexec";
+import { Email, sendEmails } from "@/lib/iexec";
 import { createLinks } from "@/lib/peanut";
 import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
 import { Icons } from "../icons";
 import { buttonVariants } from "../ui/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { toast } from "../ui/use-toast";
 
-const createCampaignFieldsSchema = createCampaignSchema.pick({
-  name: true,
-  content: true,
-});
+const createCampaignFieldsSchema = createCampaignSchema
+  .pick({
+    name: true,
+    content: true,
+  })
+  .extend({
+    isRewardCampaign: z.boolean().default(false).optional(),
+  });
 
 type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
 
@@ -60,36 +65,12 @@ export function CreateCampaignModal({
   const chainId = useChainId();
   const { switchNetworkAsync } = useSwitchNetwork();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreateCampaignData>({
+  const form = useForm<CreateCampaignData>({
     resolver: zodResolver(createCampaignFieldsSchema),
   });
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = form.handleSubmit(async (data) => {
     setIsLoading(true);
-
-    if (chainId !== polygonMumbai.id && switchNetworkAsync) {
-      await switchNetworkAsync(polygonMumbai.id);
-    }
-
-    // @ts-ignore
-    const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-    const signer = web3Provider.getSigner();
-
-    const links = await createLinks({
-      chainId: polygonMumbai.id,
-      signer,
-      numberOfLinks: 1,
-    });
-
-    console.log("Links: ", links);
-
-    if (switchNetworkAsync) {
-      await switchNetworkAsync(iexec.id);
-    }
 
     // Filter contacts by list
     let filteredContacts: Contact[] = [];
@@ -111,16 +92,51 @@ export function CreateCampaignModal({
     }
 
     // Skip paid contacts
-    const freeContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
+    const finalContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
+
+    const emails: Email[] = finalContacts.map((contact) => {
+      return {
+        address: contact.address,
+        content: data.content,
+        subject: "Subject",
+      };
+    });
+
+    if (data.isRewardCampaign) {
+      // Generate payment links
+      if (chainId !== polygonMumbai.id && switchNetworkAsync) {
+        await switchNetworkAsync(polygonMumbai.id);
+      }
+
+      // @ts-ignore
+      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = web3Provider.getSigner();
+
+      const links = await createLinks({
+        chainId: polygonMumbai.id,
+        signer,
+        numberOfLinks: finalContacts.length,
+      });
+
+      // Append payment links to emails
+      emails.forEach((email, index) => {
+        email.content += `<br/><br/> You received a reward! Claim it at: ${links[index]}`;
+      });
+
+      if (switchNetworkAsync) {
+        await switchNetworkAsync(iexec.id);
+      }
+    }
 
     // Send emails
     const provider = await connector?.getProvider();
     const sentEmails = await sendEmails({
       provider,
-      content: data.content,
-      subject: "Subject",
+      emails,
+      // content: data.content,
+      // subject: "Subject",
       senderName: "3mail",
-      contacts: freeContacts.map((contact) => contact.address),
+      // contacts: freeContacts.map((contact) => contact.address),
     });
 
     if (sentEmails.length !== 0) {
@@ -135,7 +151,7 @@ export function CreateCampaignModal({
           ...data,
           listId: selectedList === "all-contacts" ? undefined : selectedList,
           type: "email",
-          contacts: filteredContacts,
+          contacts: finalContacts.map((contact) => contact.address),
         }),
       });
 
@@ -166,73 +182,88 @@ export function CreateCampaignModal({
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent>
         <h3 className="text-xl font-bold">Create Campaign</h3>
-        <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div>
-            <Label htmlFor="name" className="mb-2 block">
-              Name
-            </Label>
-            <Input
-              id="name"
-              placeholder="My project"
-              type="text"
-              autoCapitalize="none"
-              autoCorrect="off"
-              // disabled={isLoading || isGitHubLoading}
-              {...register("name")}
+        <Form {...form}>
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            <div>
+              <Label htmlFor="name" className="mb-2 block">
+                Name
+              </Label>
+              <Input
+                id="name"
+                placeholder="My project"
+                type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                // disabled={isLoading || isGitHubLoading}
+                {...form.register("name")}
+              />
+              {form.formState.errors?.name && (
+                <p className="px-1 text-xs text-red-600">{form.formState.errors.name.message}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="name" className="mb-2 block">
+                List
+              </Label>
+              <Select value={selectedList} onValueChange={setSelectedList}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a fruit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="all-contacts">All contacts</SelectItem>
+                    {lists.map((list) => (
+                      <SelectItem key={list.id} value={list.id}>
+                        {list.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="content" className="mb-2 block">
+                Content
+              </Label>
+              <Textarea
+                id="content"
+                placeholder="Your email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                rows={4}
+                // disabled={isLoading || isGitHubLoading}
+                {...form.register("content")}
+              />
+              {form.formState.errors?.content && (
+                <p className="px-1 text-xs text-red-600">{form.formState.errors.content.message}</p>
+              )}
+            </div>
+            <FormField
+              control={form.control}
+              name="isRewardCampaign"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Reward Campaign</FormLabel>
+                    <FormDescription>Receive emails about your account security.</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
             />
-            {errors?.name && <p className="px-1 text-xs text-red-600">{errors.name.message}</p>}
-          </div>
-          <div>
-            <Label htmlFor="name" className="mb-2 block">
-              List
-            </Label>
-            <Select value={selectedList} onValueChange={setSelectedList}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a fruit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all-contacts">All contacts</SelectItem>
-                  {lists.map((list) => (
-                    <SelectItem key={list.id} value={list.id}>
-                      {list.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="content" className="mb-2 block">
-              Content
-            </Label>
-            <Textarea
-              id="content"
-              placeholder="Your email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              rows={4}
-              // disabled={isLoading || isGitHubLoading}
-              {...register("content")}
-            />
-            {errors?.content && (
-              <p className="px-1 text-xs text-red-600">{errors.content.message}</p>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
-            <Switch id="airplane-mode" />
-            <Label htmlFor="airplane-mode">Reward Campaign</Label>
-          </div>
-          <button
-            className={cn(buttonVariants(), {
-              "cursor-not-allowed opacity-60": isLoading,
-            })}
-            disabled={isLoading}
-          >
-            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-            Send
-          </button>
-        </form>
+            <button
+              className={cn(buttonVariants(), {
+                "cursor-not-allowed opacity-60": isLoading,
+              })}
+              disabled={isLoading}
+            >
+              {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+              Send
+            </button>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

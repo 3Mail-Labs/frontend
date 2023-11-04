@@ -26,7 +26,7 @@ export const ChainSwitch = () => {
           Unsupported network
         </Button>
       ) : (
-        <span className={cn(buttonVariants({ variant: "secondary" }), "px-4 gap-2")}>
+        <span className={cn(buttonVariants({ variant: "secondary" }), "gap-2 px-4")}>
           <ChainIcon chain={chain} className="h-4 w-4" />
           <span className="hidden sm:block">{chain?.name}</span>
         </span>

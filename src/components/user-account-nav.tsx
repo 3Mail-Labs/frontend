@@ -30,10 +30,7 @@ export function UserAccountNav({ user }: UserAccountNavProps) {
       <DropdownMenuContent align="end" className="min-w-[150px]">
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
-            <Address
-              address={user.address as `0x${string}`}
-              className="text-sm font-medium text-gray-900"
-            />
+            <Address address={user.address as `0x${string}`} className="text-sm font-medium" />
           </div>
         </div>
         <DropdownMenuSeparator />

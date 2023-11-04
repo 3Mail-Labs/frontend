@@ -83,6 +83,7 @@ export const authOptions: NextAuthOptions = {
       // session.address = token.address;
       return session;
     },
+    //@ts-ignore
     async jwt({ token, user }) {
       // console.log("Token 1 : ", token);
       // console.log("User 2: ", user);
