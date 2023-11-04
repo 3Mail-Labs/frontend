@@ -58,7 +58,7 @@ export const columns: ColumnDef<CampaignWithList>[] = [
   {
     accessorKey: "list.name",
     header: "List",
-    cell: ({ getValue }) => <span>{getValue() as string}</span>,
+    cell: ({ getValue }) => <span>{(getValue() as string) ?? "All Contacts"}</span>,
   },
 ];
 
