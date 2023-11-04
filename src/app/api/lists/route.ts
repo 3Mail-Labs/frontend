@@ -24,18 +24,23 @@ export async function POST(req: Request) {
       data: {
         name: body.name,
         userId: user.id,
+        type: body.type,
+        params: {
+          tokenAddress: body.params.tokenAddress,
+        },
         contacts: {
-          createMany: {
-            data: body.contacts.map((contact) => ({
-              contactAddress: contact,
-            })),
-          },
+          create: body.contacts.map((contact) => ({
+            address: contact,
+            userId: user.id,
+          })),
         },
       },
     });
 
     return NextResponse.json(list);
   } catch (error) {
+    console.error(error);
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(error.issues, { status: 422 });
     }

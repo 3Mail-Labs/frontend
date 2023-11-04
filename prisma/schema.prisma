@@ -90,10 +90,12 @@ model Campaign {
 model List {
   id           String    @id @default(cuid())
   name         String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now()) @updatedAt
+  type         String
+  params       Json
 
-  contacts     ListContact[]
+  contacts     Contact[]
   campaigns    Campaign[]
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -103,30 +105,32 @@ model List {
 }
 
 model Contact {
-  address String @id
+  id           String    @id @default(cuid())
+  address       String
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @default(now()) @updatedAt
 
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  contactLists  ListContact[]
+  lists  List[]
 
+  @@unique([userId, address])
   @@map(name: "contacts")
 }
 
-model ListContact {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
+// model ListContact {
+//   id            String    @id @default(cuid())
+//   createdAt     DateTime  @default(now())
+//   updatedAt     DateTime  @default(now()) @updatedAt
 
-  list  List @relation(fields: [listId], references: [id])
-  listId String
+//   // list  List @relation(fields: [listId], references: [id])
+//   // listId String
 
-  contact  Contact @relation(fields: [contactAddress], references: [address])
-  contactAddress String
+//   contact Contact @relation(fields: [contactId], references: [id])
+//   contactId String
 
-  @@unique([listId, contactAddress])
-  @@index([listId])
-  @@map(name: "contact_list_contacts")
-}
+//   // @@unique([listId, contactId])
+//   // @@index([listId])
+//   @@map(name: "contact_list_contacts")
+// }
