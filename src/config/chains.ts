@@ -39,7 +39,7 @@ const getChains = () => {
     case "localhost":
       return [iexec];
     case "testnet":
-      return [iexec];
+      return [iexec, polygonMumbai];
     case "mainnet":
       throw [iexec];
     default:

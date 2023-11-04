@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/table";
 
 export interface CampaignWithList extends Campaign {
-  list: List;
+  list: List | null;
 }
 
 export const columns: ColumnDef<CampaignWithList>[] = [

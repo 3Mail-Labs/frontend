@@ -2,10 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Contact, List } from "@prisma/client";
+import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useAccount } from "wagmi";
+import { polygonMumbai } from "viem/chains";
+import { useAccount, useSwitchNetwork } from "wagmi";
 import { z } from "zod";
 
 import { BaseDialogProps, Dialog, DialogContent } from "@/components/ui/dialog";
@@ -17,7 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { iexec } from "@/config/chains";
+import { useChainId } from "@/hooks/use-chain-id";
 import { sendEmails } from "@/lib/iexec";
+import { createLinks } from "@/lib/peanut";
 import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
@@ -25,6 +30,7 @@ import { Icons } from "../icons";
 import { buttonVariants } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { toast } from "../ui/use-toast";
 
@@ -51,6 +57,8 @@ export function CreateCampaignModal({
   const router = useRouter();
 
   const { connector } = useAccount();
+  const chainId = useChainId();
+  const { switchNetworkAsync } = useSwitchNetwork();
 
   const {
     register,
@@ -62,6 +70,26 @@ export function CreateCampaignModal({
 
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
+
+    if (chainId !== polygonMumbai.id && switchNetworkAsync) {
+      await switchNetworkAsync(polygonMumbai.id);
+    }
+
+    // @ts-ignore
+    const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = web3Provider.getSigner();
+
+    const links = await createLinks({
+      chainId: polygonMumbai.id,
+      signer,
+      numberOfLinks: 1,
+    });
+
+    console.log("Links: ", links);
+
+    if (switchNetworkAsync) {
+      await switchNetworkAsync(iexec.id);
+    }
 
     // Filter contacts by list
     let filteredContacts: Contact[] = [];
@@ -190,6 +218,10 @@ export function CreateCampaignModal({
             {errors?.content && (
               <p className="px-1 text-xs text-red-600">{errors.content.message}</p>
             )}
+          </div>
+          <div className="flex items-center space-x-2">
+            <Switch id="airplane-mode" />
+            <Label htmlFor="airplane-mode">Reward Campaign</Label>
           </div>
           <button
             className={cn(buttonVariants(), {
