@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { polygonMumbai } from "viem/chains";
 import { useAccount, useSwitchNetwork } from "wagmi";
+import { getNetwork } from "wagmi/actions";
 import { z } from "zod";
 
 import { BaseDialogProps, Dialog, DialogContent } from "@/components/ui/dialog";
@@ -20,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { iexec } from "@/config/chains";
-import { useChainId } from "@/hooks/use-chain-id";
 import { Email, sendEmails } from "@/lib/iexec";
 import { createLinks } from "@/lib/peanut";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ const createCampaignFieldsSchema = createCampaignSchema
   })
   .extend({
     isRewardCampaign: z.boolean().default(false).optional(),
+    rewardAmount: z.string().optional(),
   });
 
 type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
@@ -62,7 +63,6 @@ export function CreateCampaignModal({
   const router = useRouter();
 
   const { connector } = useAccount();
-  const chainId = useChainId();
   const { switchNetworkAsync } = useSwitchNetwork();
 
   const form = useForm<CreateCampaignData>({
@@ -72,110 +72,124 @@ export function CreateCampaignModal({
   const onSubmit = form.handleSubmit(async (data) => {
     setIsLoading(true);
 
-    // Filter contacts by list
-    let filteredContacts: Contact[] = [];
+    try {
+      // Filter contacts by list
+      let filteredContacts: Contact[] = [];
 
-    if (selectedList === "all-contacts") {
-      filteredContacts = contacts;
-    } else {
-      const response = await fetch(`/api/lists/${selectedList}/contacts`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      if (selectedList === "all-contacts") {
+        filteredContacts = contacts;
+      } else {
+        const response = await fetch(`/api/lists/${selectedList}/contacts`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-      const json = await response.json();
-      console.log("Response: ", json);
+        const json = await response.json();
+        console.log("Response: ", json);
 
-      filteredContacts = json;
-    }
-
-    // Skip paid contacts
-    const finalContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
-
-    const emails: Email[] = finalContacts.map((contact) => {
-      return {
-        address: contact.address,
-        content: data.content,
-        subject: "Subject",
-      };
-    });
-
-    if (data.isRewardCampaign) {
-      // Generate payment links
-      if (chainId !== polygonMumbai.id && switchNetworkAsync) {
-        await switchNetworkAsync(polygonMumbai.id);
+        filteredContacts = json;
       }
 
-      // @ts-ignore
-      const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = web3Provider.getSigner();
+      console.log("Filtered contacts: ", filteredContacts);
 
-      const links = await createLinks({
-        chainId: polygonMumbai.id,
-        signer,
-        numberOfLinks: finalContacts.length,
+      // Skip paid contacts
+      const finalContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
+
+      console.log("Final contacts: ", finalContacts);
+
+      const emails: Email[] = finalContacts.map((contact) => {
+        return {
+          address: contact.address,
+          content: data.content,
+          subject: "Subject",
+        };
       });
 
-      // Append payment links to emails
-      emails.forEach((email, index) => {
-        email.content += `<br/><br/> You received a reward! Claim it at: ${links[index]}`;
-      });
+      if (data.isRewardCampaign) {
+        // Generate payment links
 
-      if (switchNetworkAsync) {
-        await switchNetworkAsync(iexec.id);
-      }
-    }
+        const { chain } = getNetwork();
+        if (chain?.id !== polygonMumbai.id && switchNetworkAsync) {
+          await switchNetworkAsync(polygonMumbai.id);
+        }
 
-    // Send emails
-    const provider = await connector?.getProvider();
-    const sentEmails = await sendEmails({
-      provider,
-      emails,
-      // content: data.content,
-      // subject: "Subject",
-      senderName: "3mail",
-      // contacts: freeContacts.map((contact) => contact.address),
-    });
+        // @ts-ignore
+        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = web3Provider.getSigner();
 
-    if (sentEmails.length !== 0) {
-      console.log("Sent emails: ", sentEmails);
+        const links = await createLinks({
+          chainId: polygonMumbai.id,
+          signer,
+          numberOfLinks: finalContacts.length,
+          amount: Number(data.rewardAmount) || 0,
+        });
 
-      const response = await fetch("/api/campaigns", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...data,
-          listId: selectedList === "all-contacts" ? undefined : selectedList,
-          type: "email",
-          contacts: finalContacts.map((contact) => contact.address),
-        }),
-      });
+        console.log("Links: ", links);
 
-      if (!response?.ok) {
-        return toast({
-          title: "Something went wrong.",
-          description: "Your campaign was not created. Please try again.",
-          variant: "destructive",
+        // Append payment links to emails
+        emails.forEach((email, index) => {
+          email.content += `<br/><br/> You received a reward! Claim it at: ${links[index]}`;
         });
       }
 
-      toast({
-        title: "Campaign created!.",
-        description: "Your campaign was created successfully",
-        variant: "default",
+      const { chain } = getNetwork();
+      if (chain?.id !== iexec.id && switchNetworkAsync) {
+        await switchNetworkAsync(iexec.id);
+      }
+
+      // Send emails
+      const provider = await connector?.getProvider();
+      const sentEmails = await sendEmails({
+        provider,
+        emails,
+        senderName: "3mail",
+        // content: data.content,
+        // subject: "Subject",
+        // contacts: freeContacts.map((contact) => contact.address),
       });
+
+      if (sentEmails.length !== 0) {
+        console.log("Sent emails: ", sentEmails);
+
+        const response = await fetch("/api/campaigns", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...data,
+            listId: selectedList === "all-contacts" ? undefined : selectedList,
+            type: "email",
+            contacts: finalContacts.map((contact) => contact.address),
+          }),
+        });
+
+        if (!response?.ok) {
+          return toast({
+            title: "Something went wrong.",
+            description: "Your campaign was not created. Please try again.",
+            variant: "destructive",
+          });
+        }
+
+        toast({
+          title: "Campaign created!.",
+          description: "Your campaign was created successfully",
+          variant: "default",
+        });
+      }
+
+      setIsLoading(false);
+
+      // This forces a cache invalidation.
+      router.refresh();
+
+      onOpenChange?.(false);
+    } catch (error) {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-
-    // This forces a cache invalidation.
-    router.refresh();
-
-    onOpenChange?.(false);
   });
 
   return (
@@ -253,6 +267,27 @@ export function CreateCampaignModal({
                 </FormItem>
               )}
             />
+            {form.watch("isRewardCampaign") && (
+              <div>
+                <Label htmlFor="rewardAmount" className="mb-2 block">
+                  Reward Amount
+                </Label>
+                <Input
+                  id="rewardAmount"
+                  type="number"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  step={0.0001}
+                  // disabled={isLoading || isGitHubLoading}
+                  {...form.register("rewardAmount")}
+                />
+                {form.formState.errors?.rewardAmount && (
+                  <p className="px-1 text-xs text-red-600">
+                    {form.formState.errors.rewardAmount.message}
+                  </p>
+                )}
+              </div>
+            )}
             <button
               className={cn(buttonVariants(), {
                 "cursor-not-allowed opacity-60": isLoading,

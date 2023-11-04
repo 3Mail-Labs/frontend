@@ -5,9 +5,10 @@ interface CreateLinksParams {
   signer: ethers.Signer;
   chainId: number;
   numberOfLinks: number;
+  amount: number;
 }
 
-export async function createLinks({ signer, chainId, numberOfLinks }: CreateLinksParams) {
+export async function createLinks({ signer, chainId, numberOfLinks, amount }: CreateLinksParams) {
   // create link
   const createdLinks = await peanut.createLinks({
     structSigner: {
@@ -15,7 +16,7 @@ export async function createLinks({ signer, chainId, numberOfLinks }: CreateLink
     },
     linkDetails: {
       chainId,
-      tokenAmount: 0.00001,
+      tokenAmount: amount,
       tokenType: 0, // 0 is for native tokens
       // Values for tokenType are defined in SDK documentation:
       // https://docs.peanut.to/integrations/building-with-the-sdk/sdk-reference/common-types#epeanutlinktype

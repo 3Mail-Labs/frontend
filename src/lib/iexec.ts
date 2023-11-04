@@ -65,6 +65,16 @@ export async function sendEmails({
 
   console.log("Emails to send", emailsToSend);
 
+  // const sentEmail = web3mail.sendEmail({
+  //   protectedData: emailsToSend[0].protectedData,
+  //   emailSubject: emailsToSend[0].subject || "No subject",
+  //   emailContent: emailsToSend[0].content || "No content",
+  //   contentType: "text/html",
+  //   senderName,
+  // });
+
+  // return sentEmail;
+
   const promises = emailsToSend.map((email) =>
     web3mail.sendEmail({
       protectedData: email.protectedData,
