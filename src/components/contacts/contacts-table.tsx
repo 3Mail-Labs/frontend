@@ -50,6 +50,11 @@ export const columns: ColumnDef<Contact>[] = [
     header: "Number of emails",
     cell: ({ row }) => <span>{row.getValue("numberOfAccess")}</span>,
   },
+  {
+    accessorKey: "pricePerEmail",
+    header: "Price per email",
+    cell: ({ row }) => <span>{row.getValue("pricePerEmail")}</span>,
+  },
 ];
 
 interface ContactsTableProps {

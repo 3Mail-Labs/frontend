@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         },
         data: {
           numberOfAccess: (existingContact.numberOfAccess || 0) + body.numberOfAccess,
+          pricePerEmail: body.pricePerEmail,
         },
       });
       return NextResponse.json(updatedContact);
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
           address: body.address,
           userId: user.id,
           numberOfAccess: body.numberOfAccess,
+          pricePerEmail: body.pricePerEmail,
         },
       });
       return NextResponse.json(contact);

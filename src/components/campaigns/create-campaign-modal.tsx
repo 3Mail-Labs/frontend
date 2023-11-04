@@ -64,10 +64,10 @@ export function CreateCampaignModal({
     setIsLoading(true);
 
     // Filter contacts by list
-    let filteredContacts: string[] = [];
+    let filteredContacts: Contact[] = [];
 
     if (selectedList === "all-contacts") {
-      filteredContacts = contacts.map((contact) => contact.address);
+      filteredContacts = contacts;
     } else {
       const response = await fetch(`/api/lists/${selectedList}/contacts`, {
         method: "GET",
@@ -79,8 +79,11 @@ export function CreateCampaignModal({
       const json = await response.json();
       console.log("Response: ", json);
 
-      filteredContacts = json.map((contact: any) => contact.address);
+      filteredContacts = json;
     }
+
+    // Skip paid contacts
+    const freeContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
 
     // Send emails
     const provider = await connector?.getProvider();
@@ -89,7 +92,7 @@ export function CreateCampaignModal({
       content: data.content,
       subject: "Subject",
       senderName: "3mail",
-      contacts: filteredContacts,
+      contacts: freeContacts.map((contact) => contact.address),
     });
 
     if (sentEmails.length !== 0) {
