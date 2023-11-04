@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Contact, List } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -61,13 +63,33 @@ export function CreateCampaignModal({
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
 
+    // Filter contacts by list
+    let filteredContacts: string[] = [];
+
+    if (selectedList === "all-contacts") {
+      filteredContacts = contacts.map((contact) => contact.address);
+    } else {
+      const response = await fetch(`/api/lists/${selectedList}/contacts`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await response.json();
+      console.log("Response: ", json);
+
+      filteredContacts = json.map((contact: any) => contact.address);
+    }
+
+    // Send emails
     const provider = await connector?.getProvider();
     const sentEmails = await sendEmails({
       provider,
       content: data.content,
       subject: "Subject",
       senderName: "3mail",
-      contacts: contacts.map((contact) => contact.address),
+      contacts: filteredContacts,
     });
 
     console.log("Sent emails: ", sentEmails);
