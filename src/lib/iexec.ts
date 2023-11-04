@@ -14,16 +14,38 @@ interface SendEmailParams {
   subject: string;
   content: string;
   senderName: string;
+  contacts: string[];
 }
 
-export async function sendEmails({ provider, content, subject, senderName }: SendEmailParams) {
+export async function sendEmails({
+  provider,
+  content,
+  subject,
+  senderName,
+  contacts,
+}: SendEmailParams) {
+  const lowercaseContacts = contacts.map((contact) => contact.toLowerCase());
+
   const web3mail = new IExecWeb3mail(provider);
+  const currentContacts: Contact[] = await web3mail.fetchMyContacts();
+  // console.log("Contacts", currentContacts);
 
-  const contacts: Contact[] = await web3mail.fetchMyContacts();
+  // Filter contacts
+  const filteredContacts = currentContacts.filter((contact) =>
+    lowercaseContacts.includes(contact.owner.toLowerCase()),
+  );
 
-  console.log("Contacts", contacts);
+  // console.log("Filtered contacts", filteredContacts);
 
-  const promises = contacts.map((contact) =>
+  // Remove duplicates
+  const uniqueContacts = filteredContacts.filter(
+    (contact, index, self) =>
+      index === self.findIndex((c) => c.owner.toLowerCase() === contact.owner.toLowerCase()),
+  );
+
+  // console.log("Unique contacts", uniqueContacts);
+
+  const promises = uniqueContacts.map((contact) =>
     web3mail.sendEmail({
       protectedData: contact.address,
       emailSubject: subject,

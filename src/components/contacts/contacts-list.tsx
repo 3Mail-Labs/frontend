@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 
 import { ContactsTable } from "./contacts-table";
 
-const getContacts = cache(async () => {
+export const getContacts = cache(async () => {
   const session = await getSession();
   if (!session) {
     return null;

@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { List } from "@prisma/client";
+import { Contact, List } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useAccount } from "wagmi";
 import { z } from "zod";
 
 import { BaseDialogProps, Dialog, DialogContent } from "@/components/ui/dialog";
@@ -14,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { sendEmails } from "@/lib/iexec";
 import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
@@ -33,12 +35,20 @@ type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
 
 interface CreateCampaignModalProps extends BaseDialogProps {
   lists: List[];
+  contacts: Contact[];
 }
 
-export function CreateCampaignModal({ lists, open, onOpenChange }: CreateCampaignModalProps) {
-  const [selectedList, setSelectedList] = useState(lists[0].id);
+export function CreateCampaignModal({
+  lists,
+  contacts,
+  open,
+  onOpenChange,
+}: CreateCampaignModalProps) {
+  const [selectedList, setSelectedList] = useState("all-contacts");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
+
+  const { connector } = useAccount();
 
   const {
     register,
@@ -50,6 +60,17 @@ export function CreateCampaignModal({ lists, open, onOpenChange }: CreateCampaig
 
   const onSubmit = handleSubmit(async (data) => {
     setIsLoading(true);
+
+    const provider = await connector?.getProvider();
+    const sentEmails = await sendEmails({
+      provider,
+      content: data.content,
+      subject: "Subject",
+      senderName: "3mail",
+      contacts: contacts.map((contact) => contact.address),
+    });
+
+    console.log("Sent emails: ", sentEmails);
 
     const response = await fetch("/api/campaigns", {
       method: "POST",
@@ -115,6 +136,7 @@ export function CreateCampaignModal({ lists, open, onOpenChange }: CreateCampaig
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
+                  <SelectItem value="all-contacts">All contacts</SelectItem>
                   {lists.map((list) => (
                     <SelectItem key={list.id} value={list.id}>
                       {list.name}

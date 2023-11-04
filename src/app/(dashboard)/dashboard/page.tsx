@@ -3,6 +3,7 @@ import { Suspense } from "react";
 
 import { CampaignsList } from "@/components/campaigns/campaigns-list";
 import { CreateCampaignButton } from "@/components/campaigns/create-campaign-button";
+import { getContacts } from "@/components/contacts/contacts-list";
 import { Icons } from "@/components/icons";
 import { getLists } from "@/components/lists/lists-list";
 import { authOptions } from "@/lib/auth";
@@ -13,8 +14,7 @@ export const metadata = {
 };
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-  const lists = await getLists();
+  const [user, lists, contacts] = await Promise.all([getCurrentUser(), getLists(), getContacts()]);
 
   if (!user) {
     redirect(authOptions?.pages?.signIn || "/login");
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     <div>
       <div className="flex justify-between">
         <h1 className="text-3xl font-bold">Campaigns</h1>
-        {lists && <CreateCampaignButton lists={lists} />}
+        {lists && contacts && <CreateCampaignButton lists={lists} contacts={contacts} />}
       </div>
       <div className="mt-6">
         <Suspense
