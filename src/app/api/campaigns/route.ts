@@ -7,6 +7,7 @@ import { createCampaignSchema } from "@/lib/validations/campaign";
 
 const schema = createCampaignSchema.extend({
   contacts: z.array(z.string()),
+  taskIds: z.array(z.string()).optional(),
 });
 
 export async function POST(req: Request) {
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
         description: body.description,
         listId: body.listId,
         userId: user.id,
+        taskIds: body.taskIds,
       },
     });
 
@@ -40,6 +42,9 @@ export async function POST(req: Request) {
       where: {
         address: {
           in: body.contacts,
+        },
+        numberOfAccess: {
+          gt: 0,
         },
       },
       data: {

@@ -39,10 +39,12 @@ const createCampaignFieldsSchema = createCampaignSchema
   .pick({
     name: true,
     content: true,
+    subject: true,
   })
   .extend({
     isRewardCampaign: z.boolean().default(false).optional(),
     rewardAmount: z.string().optional(),
+    senderName: z.string().optional(),
   });
 
 type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
@@ -103,7 +105,7 @@ export function CreateCampaignModal({
         return {
           address: contact.address,
           content: data.content,
-          subject: "Subject",
+          subject: data.subject || "Subject",
         };
       });
 
@@ -144,7 +146,7 @@ export function CreateCampaignModal({
       const sentEmails = await sendEmails({
         provider,
         emails,
-        senderName: "3mail",
+        senderName: data.senderName || "3Mail",
         // content: data.content,
         // subject: "Subject",
         // contacts: freeContacts.map((contact) => contact.address),
@@ -152,6 +154,8 @@ export function CreateCampaignModal({
 
       if (sentEmails.length !== 0) {
         console.log("Sent emails: ", sentEmails);
+
+        const taskIds = sentEmails.map((email) => email.taskId);
 
         const response = await fetch("/api/campaigns", {
           method: "POST",
@@ -163,6 +167,7 @@ export function CreateCampaignModal({
             listId: selectedList === "all-contacts" ? undefined : selectedList,
             type: "email",
             contacts: finalContacts.map((contact) => contact.address),
+            taskIds,
           }),
         });
 
@@ -204,7 +209,7 @@ export function CreateCampaignModal({
               </Label>
               <Input
                 id="name"
-                placeholder="My project"
+                placeholder="My Campaign"
                 type="text"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -235,6 +240,47 @@ export function CreateCampaignModal({
                 </SelectContent>
               </Select>
             </div>
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <Label htmlFor="subject" className="mb-2 block">
+                  Subject
+                </Label>
+                <Input
+                  id="subject"
+                  placeholder="Subject"
+                  type="text"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  // disabled={isLoading || isGitHubLoading}
+                  {...form.register("subject")}
+                />
+                {form.formState.errors?.subject && (
+                  <p className="px-1 text-xs text-red-600">
+                    {form.formState.errors.subject.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="senderName" className="mb-2 block">
+                  Sender Name
+                </Label>
+                <Input
+                  id="senderName"
+                  placeholder="Sender"
+                  type="text"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  // disabled={isLoading || isGitHubLoading}
+                  {...form.register("senderName")}
+                />
+                {form.formState.errors?.senderName && (
+                  <p className="px-1 text-xs text-red-600">
+                    {form.formState.errors.senderName.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="content" className="mb-2 block">
                 Content
