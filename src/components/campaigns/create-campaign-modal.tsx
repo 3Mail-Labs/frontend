@@ -104,6 +104,7 @@ export function CreateCampaignModal({
           ...data,
           listId: selectedList === "all-contacts" ? undefined : selectedList,
           type: "email",
+          contacts: filteredContacts,
         }),
       });
 

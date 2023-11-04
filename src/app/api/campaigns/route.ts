@@ -5,6 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/session";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
+const schema = createCampaignSchema.extend({
+  contacts: z.array(z.string()),
+});
+
 export async function POST(req: Request) {
   try {
     // Check if user is authenticated
@@ -17,7 +21,7 @@ export async function POST(req: Request) {
     const { user } = session;
 
     const json = await req.json();
-    const body = createCampaignSchema.parse(json);
+    const body = schema.parse(json);
 
     // Create campaign
     const campaign = await prisma.campaign.create({
@@ -28,6 +32,20 @@ export async function POST(req: Request) {
         description: body.description,
         listId: body.listId,
         userId: user.id,
+      },
+    });
+
+    // Update contact access count
+    await prisma.contact.updateMany({
+      where: {
+        address: {
+          in: body.contacts,
+        },
+      },
+      data: {
+        numberOfAccess: {
+          decrement: 1,
+        },
       },
     });
 
