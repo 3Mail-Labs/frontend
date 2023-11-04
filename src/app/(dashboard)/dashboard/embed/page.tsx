@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { CopyButton } from "@/components/copy-button";
 import { CreateListButton } from "@/components/lists/create-list-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { env } from "@/env.mjs";
 import { authOptions } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/session";
 
@@ -17,7 +18,7 @@ export default async function EmbedPage() {
     redirect(authOptions?.pages?.signIn || "/login");
   }
 
-  const embedCode = `<iframe src="http://localhost:3001/${user.address}/subscribe"></iframe>`;
+  const embedCode = `<iframe src="${env.NEXT_PUBLIC_EMBED_URL}/${user.address}/subscribe"></iframe>`;
 
   return (
     <div>
@@ -32,7 +33,7 @@ export default async function EmbedPage() {
         </CardContent>
       </Card>
       <iframe
-        src={`http://localhost:3001/${user.address}/subscribe`}
+        src={`${env.NEXT_PUBLIC_EMBED_URL}/${user.address}/subscribe`}
         className="mt-8 h-[500px] w-full rounded-lg"
       />
     </div>
