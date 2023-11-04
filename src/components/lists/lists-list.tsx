@@ -6,7 +6,7 @@ import { getSession } from "@/lib/session";
 import { ListsTable } from "./lists-table";
 import { NoListsPlaceholder } from "./no-list-placeholder";
 
-const getLists = cache(async () => {
+export const getLists = cache(async () => {
   const session = await getSession();
   if (!session) {
     return null;

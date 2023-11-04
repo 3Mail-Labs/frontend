@@ -1,13 +1,28 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { List } from "@prisma/client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { BaseDialogProps, Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
-import { Button } from "../ui/button";
+import { Icons } from "../icons";
+import { buttonVariants } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { toast } from "../ui/use-toast";
 
 const createCampaignFieldsSchema = createCampaignSchema.pick({
   name: true,
@@ -16,7 +31,15 @@ const createCampaignFieldsSchema = createCampaignSchema.pick({
 
 type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
 
-export function CreateCampaignModal(props: BaseDialogProps) {
+interface CreateCampaignModalProps extends BaseDialogProps {
+  lists: List[];
+}
+
+export function CreateCampaignModal({ lists, open, onOpenChange }: CreateCampaignModalProps) {
+  const [selectedList, setSelectedList] = useState(lists[0].id);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const router = useRouter();
+
   const {
     register,
     handleSubmit,
@@ -26,11 +49,44 @@ export function CreateCampaignModal(props: BaseDialogProps) {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    console.log("Data: ", data);
+    setIsLoading(true);
+
+    const response = await fetch("/api/campaigns", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...data,
+        listId: selectedList,
+        type: "email",
+      }),
+    });
+
+    setIsLoading(false);
+
+    if (!response?.ok) {
+      return toast({
+        title: "Something went wrong.",
+        description: "Your campaign was not created. Please try again.",
+        variant: "destructive",
+      });
+    }
+
+    toast({
+      title: "Campaign created!.",
+      description: "Your campaign was created successfully",
+      variant: "default",
+    });
+
+    // This forces a cache invalidation.
+    router.refresh();
+
+    onOpenChange?.(false);
   });
 
   return (
-    <Dialog {...props} modal={true}>
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent>
         <h3 className="text-xl font-bold">Create Campaign</h3>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -50,15 +106,34 @@ export function CreateCampaignModal(props: BaseDialogProps) {
             {errors?.name && <p className="px-1 text-xs text-red-600">{errors.name.message}</p>}
           </div>
           <div>
-            <Label htmlFor="slug" className="mb-2 block">
-              Slug
+            <Label htmlFor="name" className="mb-2 block">
+              List
             </Label>
-            <Input
-              id="slug"
-              placeholder="my-project"
-              type="text"
+            <Select value={selectedList} onValueChange={setSelectedList}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a fruit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {lists.map((list) => (
+                    <SelectItem key={list.id} value={list.id}>
+                      {list.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="content" className="mb-2 block">
+              Content
+            </Label>
+            <Textarea
+              id="content"
+              placeholder="Your email"
               autoCapitalize="none"
               autoCorrect="off"
+              rows={4}
               // disabled={isLoading || isGitHubLoading}
               {...register("content")}
             />
@@ -66,7 +141,15 @@ export function CreateCampaignModal(props: BaseDialogProps) {
               <p className="px-1 text-xs text-red-600">{errors.content.message}</p>
             )}
           </div>
-          <Button>Create</Button>
+          <button
+            className={cn(buttonVariants(), {
+              "cursor-not-allowed opacity-60": isLoading,
+            })}
+            disabled={isLoading}
+          >
+            {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+            Send
+          </button>
         </form>
       </DialogContent>
     </Dialog>
