@@ -77,15 +77,18 @@ export function CreateNotificationCampaignModal({
       if (selectedList === "all-contacts") {
         filteredContacts = contacts;
       } else {
-        // const response = await fetch(`/api/lists/${selectedList}/contacts`, {
-        //   method: "GET",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // });
-        // const json = await response.json();
-        // console.log("Response: ", json);
-        // filteredContacts = json;
+        const response = await fetch(`/api/lists/${selectedList}/filter`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contacts,
+          }),
+        });
+        const json = await response.json();
+        console.log("Response: ", json);
+        filteredContacts = json;
       }
 
       let url: string | undefined = undefined;
