@@ -33,7 +33,7 @@ export default async function EmbedPage() {
         </CardContent>
       </Card>
       <iframe
-        src={`${env.NEXT_PUBLIC_EMBED_URL}/${user.address}/subscribe`}
+        src={`${env.NEXT_PUBLIC_EMBED_URL}/${user.address}`}
         className="mt-8 h-[500px] w-full rounded-lg"
       />
     </div>
