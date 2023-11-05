@@ -2,13 +2,13 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { List } from "@prisma/client";
-import { ethers } from "ethers";
-import { useRouter } from "next/navigation";
+// import { ethers } from "ethers";
+// import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { polygonZkEvmTestnet } from "viem/chains";
-import { useSwitchNetwork } from "wagmi";
-import { getNetwork } from "wagmi/actions";
+// import { polygonZkEvmTestnet } from "viem/chains";
+// import { useSwitchNetwork } from "wagmi";
+// import { getNetwork } from "wagmi/actions";
 import { z } from "zod";
 
 import { BaseDialogProps, Dialog, DialogContent } from "@/components/ui/dialog";
@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { iexec } from "@/config/chains";
-import { createLinks } from "@/lib/peanut";
+// import { iexec } from "@/config/chains";
+// import { createLinks } from "@/lib/peanut";
 import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
 
@@ -32,7 +32,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
-import { toast } from "../ui/use-toast";
+// import { toast } from "../ui/use-toast";
 
 const createCampaignFieldsSchema = createCampaignSchema
   .pick({
@@ -52,136 +52,118 @@ interface CreateCampaignModalProps extends BaseDialogProps {
 }
 
 export function CreateNotificationCampaignModal({
-  contacts,
+  // contacts,
   open,
   lists,
   onOpenChange,
 }: CreateCampaignModalProps) {
   const [selectedList, setSelectedList] = useState("all-contacts");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const router = useRouter();
+  const [isLoading] = useState<boolean>(false);
+  // const router = useRouter();
 
-  const { switchNetworkAsync } = useSwitchNetwork();
+  // const { switchNetworkAsync } = useSwitchNetwork();
 
   const form = useForm<CreateCampaignData>({
     resolver: zodResolver(createCampaignFieldsSchema),
   });
 
-  const onSubmit = form.handleSubmit(async (data) => {
-    setIsLoading(true);
-
-    try {
-      // Filter contacts by list
-      let filteredContacts: string[] = [];
-
-      if (selectedList === "all-contacts") {
-        filteredContacts = contacts;
-      } else {
-        const response = await fetch(`/api/lists/${selectedList}/filter`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contacts,
-          }),
-        });
-        const json = await response.json();
-        console.log("Response: ", json);
-        filteredContacts = json;
-      }
-
-      let url: string | undefined = undefined;
-
-      if (data.isRewardCampaign) {
-        // Generate payment links
-
-        const { chain } = getNetwork();
-        if (chain?.id !== polygonZkEvmTestnet.id && switchNetworkAsync) {
-          await switchNetworkAsync(polygonZkEvmTestnet.id);
-        }
-
-        // @ts-ignore
-        const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = web3Provider.getSigner();
-
-        const links = await createLinks({
-          chainId: polygonZkEvmTestnet.id,
-          signer,
-          numberOfLinks: 1,
-          amount: Number(data.rewardAmount) || 0,
-        });
-
-        url = links[0];
-      }
-
-      const { chain } = getNetwork();
-      if (chain?.id !== iexec.id && switchNetworkAsync) {
-        await switchNetworkAsync(iexec.id);
-      }
-
-      // Send emails
-      const res = await fetch("/api/notify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accounts: filteredContacts.map((c) => "eip155:1:" + c), // accounts that we want to send the notification to.
-          notification: {
-            title: "New Notification",
-            body: data.content,
-            icon: "",
-            url,
-            type: "ac8a819e-1ad2-4fef-bdcf-80f192be2003",
-          },
-        }),
-      });
-
-      if (res.ok) {
-        console.log("Response: ", res);
-        const json = await res.json();
-        console.log("Response: ", json);
-
-        // const taskIds = sentEmails.map((email) => email.taskId);
-
-        const response = await fetch("/api/campaigns", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...data,
-            listId: selectedList === "all-contacts" ? undefined : selectedList,
-            type: "notification",
-            contacts: filteredContacts,
-          }),
-        });
-
-        if (!response?.ok) {
-          return toast({
-            title: "Something went wrong.",
-            description: "Your campaign was not created. Please try again.",
-            variant: "destructive",
-          });
-        }
-
-        toast({
-          title: "Campaign created!.",
-          description: "Your campaign was created successfully",
-          variant: "default",
-        });
-      }
-
-      setIsLoading(false);
-
-      // This forces a cache invalidation.
-      router.refresh();
-
-      onOpenChange?.(false);
-    } catch (error) {
-      setIsLoading(false);
-    }
+  const onSubmit = form.handleSubmit(async () => {
+    // setIsLoading(true);
+    // try {
+    //   // Filter contacts by list
+    //   let filteredContacts: string[] = [];
+    //   if (selectedList === "all-contacts") {
+    //     filteredContacts = contacts;
+    //   } else {
+    //     const response = await fetch(`/api/lists/${selectedList}/filter`, {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         contacts,
+    //       }),
+    //     });
+    //     const json = await response.json();
+    //     console.log("Response: ", json);
+    //     filteredContacts = json;
+    //   }
+    //   let url: string | undefined = undefined;
+    //   if (data.isRewardCampaign) {
+    //     // Generate payment links
+    //     const { chain } = getNetwork();
+    //     if (chain?.id !== polygonZkEvmTestnet.id && switchNetworkAsync) {
+    //       await switchNetworkAsync(polygonZkEvmTestnet.id);
+    //     }
+    //     // @ts-ignore
+    //     const web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+    //     const signer = web3Provider.getSigner();
+    //     const links = await createLinks({
+    //       chainId: polygonZkEvmTestnet.id,
+    //       signer,
+    //       numberOfLinks: 1,
+    //       amount: Number(data.rewardAmount) || 0,
+    //     });
+    //     url = links[0];
+    //   }
+    //   const { chain } = getNetwork();
+    //   if (chain?.id !== iexec.id && switchNetworkAsync) {
+    //     await switchNetworkAsync(iexec.id);
+    //   }
+    //   // Send emails
+    //   const res = await fetch("/api/notify", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       accounts: filteredContacts.map((c) => "eip155:1:" + c), // accounts that we want to send the notification to.
+    //       notification: {
+    //         title: "New Notification",
+    //         body: data.content,
+    //         icon: "",
+    //         url,
+    //         type: "ac8a819e-1ad2-4fef-bdcf-80f192be2003",
+    //       },
+    //     }),
+    //   });
+    //   if (res.ok) {
+    //     console.log("Response: ", res);
+    //     const json = await res.json();
+    //     console.log("Response: ", json);
+    //     // const taskIds = sentEmails.map((email) => email.taskId);
+    //     const response = await fetch("/api/campaigns", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         ...data,
+    //         listId: selectedList === "all-contacts" ? undefined : selectedList,
+    //         type: "notification",
+    //         contacts: filteredContacts,
+    //       }),
+    //     });
+    //     if (!response?.ok) {
+    //       return toast({
+    //         title: "Something went wrong.",
+    //         description: "Your campaign was not created. Please try again.",
+    //         variant: "destructive",
+    //       });
+    //     }
+    //     toast({
+    //       title: "Campaign created!.",
+    //       description: "Your campaign was created successfully",
+    //       variant: "default",
+    //     });
+    //   }
+    //   setIsLoading(false);
+    //   // This forces a cache invalidation.
+    //   router.refresh();
+    //   onOpenChange?.(false);
+    // } catch (error) {
+    //   setIsLoading(false);
+    // }
   });
 
   return (
