@@ -28,20 +28,5 @@
       "callees": ["clsx", "cva", "cn"],
       "config": "tailwind.config.js"
     }
-  },
-  /* No default export */
-  "overrides": [
-    {
-      "files": ["./src/**/*.ts", "./src/**/*.tsx"],
-      "rules": {
-        "import/no-default-export": "error"
-      }
-    },
-    {
-      "files": ["./src/app/**/*.ts", "./src/app/**/*.tsx"],
-      "rules": {
-        "import/no-default-export": "off"
-      }
-    }
-  ]
+  }
 }

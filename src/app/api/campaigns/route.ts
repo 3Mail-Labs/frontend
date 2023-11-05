@@ -34,6 +34,7 @@ export async function POST(req: Request) {
         listId: body.listId,
         userId: user.id,
         taskIds: body.taskIds,
+        type: body.type,
       },
     });
 

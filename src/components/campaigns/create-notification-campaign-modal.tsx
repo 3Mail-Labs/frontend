@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Contact, List } from "@prisma/client";
+import { List } from "@prisma/client";
 import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { polygonMumbai } from "viem/chains";
-import { useAccount, useSwitchNetwork } from "wagmi";
+import { useSwitchNetwork } from "wagmi";
 import { getNetwork } from "wagmi/actions";
 import { z } from "zod";
 
@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { iexec } from "@/config/chains";
-import { Email, sendEmails } from "@/lib/iexec";
 import { createLinks } from "@/lib/peanut";
 import { cn } from "@/lib/utils";
 import { createCampaignSchema } from "@/lib/validations/campaign";
@@ -39,32 +38,29 @@ const createCampaignFieldsSchema = createCampaignSchema
   .pick({
     name: true,
     content: true,
-    subject: true,
   })
   .extend({
     isRewardCampaign: z.boolean().default(false).optional(),
     rewardAmount: z.string().optional(),
-    senderName: z.string().optional(),
   });
 
 type CreateCampaignData = z.infer<typeof createCampaignFieldsSchema>;
 
 interface CreateCampaignModalProps extends BaseDialogProps {
+  contacts: string[];
   lists: List[];
-  contacts: Contact[];
 }
 
-export function CreateCampaignModal({
-  lists,
+export function CreateNotificationCampaignModal({
   contacts,
   open,
+  lists,
   onOpenChange,
 }: CreateCampaignModalProps) {
   const [selectedList, setSelectedList] = useState("all-contacts");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const { connector } = useAccount();
   const { switchNetworkAsync } = useSwitchNetwork();
 
   const form = useForm<CreateCampaignData>({
@@ -76,38 +72,23 @@ export function CreateCampaignModal({
 
     try {
       // Filter contacts by list
-      let filteredContacts: Contact[] = [];
+      let filteredContacts: string[] = [];
 
       if (selectedList === "all-contacts") {
         filteredContacts = contacts;
       } else {
-        const response = await fetch(`/api/lists/${selectedList}/contacts`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        const json = await response.json();
-        console.log("Response: ", json);
-
-        filteredContacts = json;
+        // const response = await fetch(`/api/lists/${selectedList}/contacts`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        // const json = await response.json();
+        // console.log("Response: ", json);
+        // filteredContacts = json;
       }
 
-      console.log("Filtered contacts: ", filteredContacts);
-
-      // Skip paid contacts
-      const finalContacts = filteredContacts.filter((contact) => contact.pricePerEmail === 0);
-
-      console.log("Final contacts: ", finalContacts);
-
-      const emails: Email[] = finalContacts.map((contact) => {
-        return {
-          address: contact.address,
-          content: data.content,
-          subject: data.subject || "Subject",
-        };
-      });
+      let url: string | undefined = undefined;
 
       if (data.isRewardCampaign) {
         // Generate payment links
@@ -124,16 +105,11 @@ export function CreateCampaignModal({
         const links = await createLinks({
           chainId: polygonMumbai.id,
           signer,
-          numberOfLinks: finalContacts.length,
+          numberOfLinks: 1,
           amount: Number(data.rewardAmount) || 0,
         });
 
-        console.log("Links: ", links);
-
-        // Append payment links to emails
-        emails.forEach((email, index) => {
-          email.content += `<br/><br/> You received a reward! Claim it at: ${links[index]}`;
-        });
+        url = links[0];
       }
 
       const { chain } = getNetwork();
@@ -142,20 +118,29 @@ export function CreateCampaignModal({
       }
 
       // Send emails
-      const provider = await connector?.getProvider();
-      const sentEmails = await sendEmails({
-        provider,
-        emails,
-        senderName: data.senderName || "3Mail",
-        // content: data.content,
-        // subject: "Subject",
-        // contacts: freeContacts.map((contact) => contact.address),
+      const res = await fetch("/api/notify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accounts: filteredContacts.map((c) => "eip155:1:" + c), // accounts that we want to send the notification to.
+          notification: {
+            title: "New Notification",
+            body: data.content,
+            icon: "",
+            url,
+            type: "ac8a819e-1ad2-4fef-bdcf-80f192be2003",
+          },
+        }),
       });
 
-      if (sentEmails.length !== 0) {
-        console.log("Sent emails: ", sentEmails);
+      if (res.ok) {
+        console.log("Response: ", res);
+        const json = await res.json();
+        console.log("Response: ", json);
 
-        const taskIds = sentEmails.map((email) => email.taskId);
+        // const taskIds = sentEmails.map((email) => email.taskId);
 
         const response = await fetch("/api/campaigns", {
           method: "POST",
@@ -165,9 +150,8 @@ export function CreateCampaignModal({
           body: JSON.stringify({
             ...data,
             listId: selectedList === "all-contacts" ? undefined : selectedList,
-            type: "email",
-            contacts: finalContacts.map((contact) => contact.address),
-            taskIds,
+            type: "notification",
+            contacts: filteredContacts,
           }),
         });
 
@@ -200,7 +184,7 @@ export function CreateCampaignModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
       <DialogContent>
-        <h3 className="text-xl font-bold">Create Email Campaign</h3>
+        <h3 className="text-xl font-bold">Create Notification Campaign</h3>
         <Form {...form}>
           <form onSubmit={onSubmit} className="flex flex-col gap-4">
             <div>
@@ -239,46 +223,6 @@ export function CreateCampaignModal({
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label htmlFor="subject" className="mb-2 block">
-                  Subject
-                </Label>
-                <Input
-                  id="subject"
-                  placeholder="Subject"
-                  type="text"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  // disabled={isLoading || isGitHubLoading}
-                  {...form.register("subject")}
-                />
-                {form.formState.errors?.subject && (
-                  <p className="px-1 text-xs text-red-600">
-                    {form.formState.errors.subject.message}
-                  </p>
-                )}
-              </div>
-              <div className="flex-1">
-                <Label htmlFor="senderName" className="mb-2 block">
-                  Sender Name
-                </Label>
-                <Input
-                  id="senderName"
-                  placeholder="Sender"
-                  type="text"
-                  autoCapitalize="none"
-                  autoCorrect="off"
-                  // disabled={isLoading || isGitHubLoading}
-                  {...form.register("senderName")}
-                />
-                {form.formState.errors?.senderName && (
-                  <p className="px-1 text-xs text-red-600">
-                    {form.formState.errors.senderName.message}
-                  </p>
-                )}
-              </div>
             </div>
 
             <div>

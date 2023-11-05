@@ -17,7 +17,7 @@ export function CreateCampaignButton({ lists, contacts }: CreateCampaignButtonPr
 
   return (
     <>
-      <Button onClick={() => setShowModal(true)}>New Campaign</Button>
+      <Button onClick={() => setShowModal(true)}>New Email Campaign</Button>
       <CreateCampaignModal
         open={showModal}
         onOpenChange={setShowModal}
