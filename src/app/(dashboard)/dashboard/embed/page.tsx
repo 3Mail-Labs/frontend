@@ -18,7 +18,7 @@ export default async function EmbedPage() {
     redirect(authOptions?.pages?.signIn || "/login");
   }
 
-  const embedCode = `<iframe src="${env.NEXT_PUBLIC_EMBED_URL}/${user.address}/subscribe"></iframe>`;
+  const embedCode = `<iframe src="${env.NEXT_PUBLIC_EMBED_URL}/${user.address}"></iframe>`;
 
   return (
     <div>
