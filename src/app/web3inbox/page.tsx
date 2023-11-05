@@ -18,14 +18,13 @@ const appDomain = env.NEXT_PUBLIC_APP_DOMAIN as string;
 
 const Home = () => {
   /** Web3Inbox SDK hooks **/
-  const isW3iInitialized = useInitWeb3InboxClient({
+  useInitWeb3InboxClient({
     projectId,
     domain: appDomain,
     isLimited: process.env.NODE_ENV == "production",
   });
   const { account, setAccount, register: registerIdentity, identityKey } = useW3iAccount();
-  const { subscribe, unsubscribe, isSubscribed, isSubscribing, isUnsubscribing } =
-    useManageSubscription(account);
+  const { subscribe, unsubscribe, isSubscribed } = useManageSubscription(account);
 
   const { address } = useAccount({
     onDisconnect: () => {
