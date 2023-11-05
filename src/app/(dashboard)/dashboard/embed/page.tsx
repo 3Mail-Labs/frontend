@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { CopyButton } from "@/components/copy-button";
-import { CreateListButton } from "@/components/lists/create-list-button";
+// import { CreateListButton } from "@/components/lists/create-list-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { env } from "@/env.mjs";
 import { authOptions } from "@/lib/auth";
@@ -24,7 +24,7 @@ export default async function EmbedPage() {
     <div>
       <div className="mb-4 flex justify-between">
         <h1 className="text-3xl font-bold">Embed</h1>
-        <CreateListButton />
+        {/* <CreateListButton /> */}
       </div>
       <Card>
         <CardContent className="relative p-4">
