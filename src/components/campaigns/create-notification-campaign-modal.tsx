@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { polygonMumbai } from "viem/chains";
+import { polygonZkEvmTestnet } from "viem/chains";
 import { useSwitchNetwork } from "wagmi";
 import { getNetwork } from "wagmi/actions";
 import { z } from "zod";
@@ -97,8 +97,8 @@ export function CreateNotificationCampaignModal({
         // Generate payment links
 
         const { chain } = getNetwork();
-        if (chain?.id !== polygonMumbai.id && switchNetworkAsync) {
-          await switchNetworkAsync(polygonMumbai.id);
+        if (chain?.id !== polygonZkEvmTestnet.id && switchNetworkAsync) {
+          await switchNetworkAsync(polygonZkEvmTestnet.id);
         }
 
         // @ts-ignore
@@ -106,7 +106,7 @@ export function CreateNotificationCampaignModal({
         const signer = web3Provider.getSigner();
 
         const links = await createLinks({
-          chainId: polygonMumbai.id,
+          chainId: polygonZkEvmTestnet.id,
           signer,
           numberOfLinks: 1,
           amount: Number(data.rewardAmount) || 0,
