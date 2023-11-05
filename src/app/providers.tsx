@@ -14,7 +14,7 @@ const projectId = env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
 const metadata = {
   name: "Web3Starter",
   description: "Web3 Frontend Starter",
-  url: "http://localhost:3000",
+  url: "http://3mail-dashboard.vercel.app",
   // icons: ["http://localhost:3000/icon.png"],
 };
 
