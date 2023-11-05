@@ -1,6 +1,6 @@
 "use client";
 
-import { Command, X } from "lucide-react";
+import { Command, Send, X } from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import * as React from "react";
@@ -22,7 +22,7 @@ export function MainNav({ items, children }: MainNavProps) {
   return (
     <div className="flex gap-6 md:gap-10">
       <Link href="/" className="hidden items-center space-x-2 md:flex">
-        <Command />
+        <Send className="text-primary" />
         <span className="hidden font-bold sm:inline-block">{siteConfig.name}</span>
       </Link>
       {items?.length ? (

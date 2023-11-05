@@ -6,37 +6,27 @@ export type DashboardConfig = {
 };
 
 export const dashboardConfig: DashboardConfig = {
-  mainNav: [
-    {
-      title: "Documentation",
-      href: "/docs",
-    },
-    {
-      title: "Support",
-      href: "/support",
-      disabled: true,
-    },
-  ],
+  mainNav: [],
   sidebarNav: [
     {
       title: "Campaigns",
       href: "/dashboard",
-      icon: "add",
+      icon: "mail",
     },
     {
       title: "Contacts",
       href: "/dashboard/contacts",
-      icon: "check",
+      icon: "user",
     },
     {
       title: "Lists",
       href: "/dashboard/lists",
-      icon: "ellipsis",
+      icon: "list",
     },
     {
       title: "Embed",
       href: "/dashboard/embed",
-      icon: "ellipsis",
+      icon: "code",
     },
   ],
 };

@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Inter, Bricolage_Grotesque } from "next/font/google";
+import { Bricolage_Grotesque } from "next/font/google";
 
 import { Layout } from "@/components/layout/layout";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,7 +10,7 @@ import { Providers } from "./providers";
 
 import type { Metadata } from "next";
 
-const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const fontSans = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-sans" });
 
 const fontHeading = Bricolage_Grotesque({
   subsets: ["latin"],
