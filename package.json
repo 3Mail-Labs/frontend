@@ -84,7 +84,8 @@
   },
   "overrides": {
     "@iexec/web3mail": {
-      "iexec": "$iexec"
+      "iexec": "8.4.0",
+      "ethers": "5.7.2"
     }
   }
 }
