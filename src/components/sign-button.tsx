@@ -43,5 +43,5 @@ export function SignButton() {
     }
   };
 
-  return <Button onClick={onSignMessage}>Sign</Button>;
+  return <Button onClick={onSignMessage}>Sign In</Button>;
 }
