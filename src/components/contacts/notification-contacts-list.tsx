@@ -1,11 +1,12 @@
 import { cache } from "react";
 
 import { NoContactsPlaceholder } from "@/components/contacts/no-contacts-placeholder";
+import { env } from "@/env.mjs";
 
 import { NotificationContactsTable } from "./notification-contacts-table";
 
 export const getNotificationContacts = cache(async () => {
-  const res = await fetch("/api/subscribers");
+  const res = await fetch(`${env.NEXT_PUBLIC_APP_DOMAIN}/api/subscribers`);
   const json = await res.json();
 
   const contacts = json.subscribers.map((subscriber: string) => ({
