@@ -5,7 +5,7 @@ import { NoContactsPlaceholder } from "@/components/contacts/no-contacts-placeho
 import { NotificationContactsTable } from "./notification-contacts-table";
 
 export const getNotificationContacts = cache(async () => {
-  const res = await fetch("http://localhost:3000/api/subscribers");
+  const res = await fetch("/api/subscribers");
   const json = await res.json();
 
   const contacts = json.subscribers.map((subscriber: string) => ({
