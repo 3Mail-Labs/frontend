@@ -92,7 +92,7 @@ function CampaignActionCell({ row }: { row: any }) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setOpen(true)}>View payment details</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOpen(true)}>View campaign details</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
